@@ -1,4 +1,4 @@
-# Arduino-Skeeball
+# WIP Arduino-Skeeball
 Code for making an arduino powered Skeeball machine. Features include scoring, LED strip scoreboard, LED start button, persistent high score, idle animation and more!
 BALL REALEASE AND CIRCUIT DIAGRAMS IN PROGRESS
 
