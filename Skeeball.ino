@@ -6,7 +6,8 @@ const int fortyPin = 5;         // Which pin on the Arduino is connected to the 
 const int thirtyPin = 6;        // Which pin on the Arduino is connected to the 30 pin?
 const int twentyPin = 7;        // Which pin on the Arduino is connected to the 20 pin?
 const int tenPin = 8;           // Which pin on the Arduino is connected to the 10 pin?
-const int relay = 12;           // Which pin on the Arduino is connected to the Relay?
+const int relay = 12;           // Which pin on the Arduino is connected to the Relay? (for the start button LED)
+const int relay2 = 13;          // Which pin on the Arduino is connected to the Other Relay? (for the 100 Light)
 const byte ledPin = 11;         // Which pin on the Arduino is connected to the NeoPixels?
 const byte numDigits = 4;       // How many digits (numbers) are available on your display
 const byte pixelPerDigit = 14;  // all Pixel, including decimal point pixels if available at each digit
@@ -51,6 +52,7 @@ void setup() {
   pinMode(tenPin, INPUT);             // Blah blah defining inputs
   pinMode(startPin, INPUT_PULLUP);    // Blah blah defining inputs (I do know why this one needs to be pulled up)
   digitalWrite(relay, HIGH);          // Set the realay to turn on
+  digitalWrite(relay2, LOW);          // Set the other relay to turn off
   notIdle = 0;                        // Sets the initial not-idle time
   if (isnan(EEPROM.get(0, hi))) {     // Check if there is a high score stored in EEPROM (permanent memory)
     uint16_t fix = 0;                 // make a quick unsigned 16 bit integer 0
@@ -80,8 +82,8 @@ void loop() {
     display.print(0);                          // Print the initial score of 0
     startTime = millis();                      // Get the current time
     endTime = millis();                        // Get the current time (again)
-    while (endTime - startTime <= 120000UL) {  // Run the game for 2 minutes (120000UL = 120 seconds)
-      run = 0;                                 // The run system allows simultaneous holes to score while preventing souble scoring
+    while (endTime - startTime <= 20000UL) {  // Run the game for 2 minutes (120000UL = 120 seconds)
+      run = 0;                                 // The run system allows simultaneous holes to score while preventing double scoring
       run += int(!digitalRead(hundredPin)) * 100;
       run += int(!digitalRead(fiftyPin)) * 50;
       run += int(!digitalRead(fortyPin)) * 40;
@@ -91,12 +93,17 @@ void loop() {
 
       if (run != 0) {          // If the player scored then add it to the score
         score += run;          // addition
+        if (run ==100) {
+          digitalWrite(relay2, HIGH);      //100 Light (thanks blake)
+        }
         display.clear();       // Clear the display
         display.print(score);  // Print the new score
         delay(800);            // 0.8 second delay prevents double scoring
+        digitalWrite(relay2, LOW);
       }
       endTime = millis();  // take the current time to see if the game is over
     }
+    /*
     if (score > EEPROM.get(0, hi)) {               // Check if the high score was beaten
       EEPROM.put(0, score);                        // Put the new high score in the EEPROM (permanent memory)
       hi = EEPROM.get(0, hi);                      // Update the high score variable not in the EEPROM
@@ -112,6 +119,7 @@ void loop() {
       display.clear();                             // Clear the display
       display.print(score);                        // Print the score again
     }
+    */
     notIdle = millis();         // Reset the idle-time
     digitalWrite(relay, HIGH);  // Turn on the LED in the start button
   }
