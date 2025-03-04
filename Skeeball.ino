@@ -1,4 +1,5 @@
 #include <EEPROM.h>             // install EEPROM library from library manager
+#include <Servo.h>              // install Servo library from library manager
 const int startPin = 2;         // Which pin on the Arduino is connected to the Start pin?
 const int hundredPin = 3;       // Which pin on the Arduino is connected to the 100 pin?
 const int fiftyPin = 4;         // Which pin on the Arduino is connected to the 50 pin?
@@ -6,9 +7,10 @@ const int fortyPin = 5;         // Which pin on the Arduino is connected to the 
 const int thirtyPin = 6;        // Which pin on the Arduino is connected to the 30 pin?
 const int twentyPin = 7;        // Which pin on the Arduino is connected to the 20 pin?
 const int tenPin = 8;           // Which pin on the Arduino is connected to the 10 pin?
+const int servo = 9;            // Which pin on the Arduino is connected to the servo?
+const byte ledPin = 11;         // Which pin on the Arduino is connected to the NeoPixels?
 const int relay = 12;           // Which pin on the Arduino is connected to the Relay? (for the start button LED)
 const int relay2 = 13;          // Which pin on the Arduino is connected to the Other Relay? (for the 100 Light)
-const byte ledPin = 11;         // Which pin on the Arduino is connected to the NeoPixels?
 const byte numDigits = 4;       // How many digits (numbers) are available on your display
 const byte pixelPerDigit = 14;  // all Pixel, including decimal point pixels if available at each digit
 bool start;                     // Set start at True/False
@@ -41,7 +43,7 @@ Noiasca_NeopixelDisplay display(strip, segment, numDigits, pixelPerDigit);  // c
 void setup() {
   strip.begin();                      // INITIALIZE NeoPixel strip object (REQUIRED)
   strip.show();                       // Turn OFF all pixels ASAP
-  strip.setBrightness(50);            // Set BRIGHTNESS to about 1/5 (max = 255)
+  strip.setBrightness(150);            // Set BRIGHTNESS (max = 255)
   display.setColorFont(0xff0000);     // Sets the display color to red
   pinMode(relay, OUTPUT);             // Blah blah defining inputs (idk why this one needs to be pulled up but it does)
   pinMode(hundredPin, INPUT_PULLUP);  // Blah blah defining inputs
@@ -51,7 +53,8 @@ void setup() {
   pinMode(twentyPin, INPUT);          // Blah blah defining inputs
   pinMode(tenPin, INPUT);             // Blah blah defining inputs
   pinMode(startPin, INPUT_PULLUP);    // Blah blah defining inputs (I do know why this one needs to be pulled up)
-  digitalWrite(relay, HIGH);          // Set the realay to turn on
+  myservo.attach(servo,500,2500);         // Set servo to pin 9 with correct values
+  digitalWrite(relay, HIGH);          // Set the relay to turn on
   digitalWrite(relay2, LOW);          // Set the other relay to turn off
   notIdle = 0;                        // Sets the initial not-idle time
   if (isnan(EEPROM.get(0, hi))) {     // Check if there is a high score stored in EEPROM (permanent memory)
@@ -59,6 +62,7 @@ void setup() {
     EEPROM.put(0, fix);               // put that 0 in as the high score
   }
   hi = EEPROM.get(0, hi);  // Put the highscore on a variable so you dont have to keep reading the EEPROM
+  myservo.write(50);
 }
 
 void loop() {
@@ -76,10 +80,12 @@ void loop() {
     }
   }
   if (start == 0) {                            // Start Button Pressed
+    myservo.write(135);                        // start releasing Balls
     score = 0;                                 // Reset score
     digitalWrite(relay, LOW);                  // Turn off LED in start button
     display.clear();                           // Clear the display
     display.print(0);                          // Print the initial score of 0
+    delay(400);                                // wait for servo before starting time
     startTime = millis();                      // Get the current time
     endTime = millis();                        // Get the current time (again)
     while (endTime - startTime <= 20000UL) {  // Run the game for 2 minutes (120000UL = 120 seconds)
