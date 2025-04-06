@@ -1,5 +1,12 @@
 #include <EEPROM.h>             // install EEPROM library from library manager
 #include <Servo.h>              // install Servo library from library manager
+#include "SoftwareSerial.h"     // install Software Serial Library (for audio)
+SoftwareSerial mySerial(1, 10); // Which pins on the Arduino are connected to the DFPlayer Mini
+#define Start_Byte 0x7E         // Magic audio stuff
+#define Version_Byte 0xFF       // Magic audio stuff
+#define Command_Length 0x06     // Magic audio stuff
+#define End_Byte 0xEF           // Magic audio stuff
+#define Acknowledge 0x00        // Returns info with command 0x41 [0x01: info, 0x00: no info]
 const int startPin = 2;         // Which pin on the Arduino is connected to the Start pin?
 const int hundredPin = 3;       // Which pin on the Arduino is connected to the 100 pin?
 const int fiftyPin = 4;         // Which pin on the Arduino is connected to the 50 pin?
@@ -20,6 +27,8 @@ int run;                        // Set the run variable (explained later) as an 
 unsigned long startTime;        // Set this time-keeping variable as an unsigned long (needs to be an unsigned long for dealing with time)
 unsigned long endTime;          // Set this time-keeping variable as an unsigned long
 unsigned long notIdle;          // Set this time-keeping variable as an unsigned long
+Servo myservo;
+bool isPlaying = false;      // Don't start playing immediately
 
 typedef uint16_t segsize_t;  // fit variable size to your needed pixels. uint16_t --> max 16 Pixel per digit
 const segsize_t segment[8]{
@@ -43,7 +52,7 @@ Noiasca_NeopixelDisplay display(strip, segment, numDigits, pixelPerDigit);  // c
 void setup() {
   strip.begin();                      // INITIALIZE NeoPixel strip object (REQUIRED)
   strip.show();                       // Turn OFF all pixels ASAP
-  strip.setBrightness(150);            // Set BRIGHTNESS (max = 255)
+  strip.setBrightness(150);           // Set BRIGHTNESS (max = 255)
   display.setColorFont(0xff0000);     // Sets the display color to red
   pinMode(relay, OUTPUT);             // Blah blah defining inputs (idk why this one needs to be pulled up but it does)
   pinMode(hundredPin, INPUT_PULLUP);  // Blah blah defining inputs
@@ -53,7 +62,7 @@ void setup() {
   pinMode(twentyPin, INPUT);          // Blah blah defining inputs
   pinMode(tenPin, INPUT);             // Blah blah defining inputs
   pinMode(startPin, INPUT_PULLUP);    // Blah blah defining inputs (I do know why this one needs to be pulled up)
-  myservo.attach(servo,500,2500);         // Set servo to pin 9 with correct values
+  myservo.attach(servo,500,2500);     // Set servo to pin 9 with correct values
   digitalWrite(relay, HIGH);          // Set the relay to turn on
   digitalWrite(relay2, LOW);          // Set the other relay to turn off
   notIdle = 0;                        // Sets the initial not-idle time
@@ -63,6 +72,10 @@ void setup() {
   }
   hi = EEPROM.get(0, hi);  // Put the highscore on a variable so you dont have to keep reading the EEPROM
   myservo.write(50);
+  mySerial.begin(9600);
+  delay(1000);
+  playFirst();
+  isPlaying = true;
 }
 
 void loop() {
@@ -88,7 +101,7 @@ void loop() {
     delay(400);                                // wait for servo before starting time
     startTime = millis();                      // Get the current time
     endTime = millis();                        // Get the current time (again)
-    while (endTime - startTime <= 20000UL) {  // Run the game for 2 minutes (120000UL = 120 seconds)
+    while (endTime - startTime <= 20000UL) {   // Run the game for 2 minutes (120000UL = 120 seconds)
       run = 0;                                 // The run system allows simultaneous holes to score while preventing double scoring
       run += int(!digitalRead(hundredPin)) * 100;
       run += int(!digitalRead(fiftyPin)) * 50;
@@ -109,6 +122,7 @@ void loop() {
       }
       endTime = millis();  // take the current time to see if the game is over
     }
+    myservo.write(45);                             // stop releasing Balls
     /*
     if (score > EEPROM.get(0, hi)) {               // Check if the high score was beaten
       EEPROM.put(0, score);                        // Put the new high score in the EEPROM (permanent memory)
@@ -128,5 +142,41 @@ void loop() {
     */
     notIdle = millis();         // Reset the idle-time
     digitalWrite(relay, HIGH);  // Turn on the LED in the start button
+  }
+}
+
+void playFirst()
+{
+  execute_CMD(0x3F, 0, 0);
+  delay(500);
+  setVolume(20);
+  delay(500);
+  execute_CMD(0x11,0,1); 
+  delay(500);
+}
+
+void setVolume(int volume)
+{
+  execute_CMD(0x06, 0, volume); // Set the volume (0x00~0x30)
+  delay(2000);
+}
+
+void play( int tracknum) {
+  execute_CMD(0x03, 0, tracknum);
+  execute_CMD(0x0D,0,1);
+  delay(500);
+}
+
+void execute_CMD(byte CMD, byte Par1, byte Par2)
+// Excecute the command and parameters
+{
+  // Calculate the checksum (2 bytes)
+  word checksum = -(Version_Byte + Command_Length + CMD + Acknowledge + Par1 + Par2);
+  // Build the command line
+  byte Command_line[10] = { Start_Byte, Version_Byte, Command_Length, CMD, Acknowledge,
+                            Par1, Par2, highByte(checksum), lowByte(checksum), End_Byte };
+  //Send the command line to the module
+  for (byte k = 0; k < 10; k++) {
+    mySerial.write(Command_line[k]);
   }
 }
