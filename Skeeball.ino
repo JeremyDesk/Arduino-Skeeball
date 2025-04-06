@@ -27,6 +27,7 @@ int run;                        // Set the run variable (explained later) as an 
 unsigned long startTime;        // Set this time-keeping variable as an unsigned long (needs to be an unsigned long for dealing with time)
 unsigned long endTime;          // Set this time-keeping variable as an unsigned long
 unsigned long notIdle;          // Set this time-keeping variable as an unsigned long
+unsigned long lightOff;          // Set this time-keeping variable as an unsigned long
 Servo myservo;
 bool isPlaying = false;      // Don't start playing immediately
 
@@ -70,7 +71,7 @@ void setup() {
     uint16_t fix = 0;                 // make a quick unsigned 16 bit integer 0
     EEPROM.put(0, fix);               // put that 0 in as the high score
   }
-  hi = EEPROM.get(0, hi);  // Put the highscore on a variable so you dont have to keep reading the EEPROM
+  hi = EEPROM.get(0, hi);             // Put the highscore on a variable so you dont have to keep reading the EEPROM
   myservo.write(50);
   mySerial.begin(9600);
   delay(1000);
@@ -95,7 +96,9 @@ void loop() {
   if (start == 0) {                            // Start Button Pressed
     myservo.write(135);                        // start releasing Balls
     score = 0;                                 // Reset score
+    lightOff = 0;
     digitalWrite(relay, LOW);                  // Turn off LED in start button
+    play(4);
     display.clear();                           // Clear the display
     display.print(0);                          // Print the initial score of 0
     delay(400);                                // wait for servo before starting time
@@ -113,18 +116,30 @@ void loop() {
       if (run != 0) {          // If the player scored then add it to the score
         score += run;          // addition
         if (run ==100) {
+          play(2);
           digitalWrite(relay2, HIGH);      //100 Light (thanks blake)
+          lightOff = millis() + 1200;
+        }
+        if (40 <= run < 100) {
+          play(5);
+        }
+        if (run < 40) {
+          play(6);
         }
         display.clear();       // Clear the display
         display.print(score);  // Print the new score
         delay(800);            // 0.8 second delay prevents double scoring
+      }
+      if (millis() >= lightOff) {
         digitalWrite(relay2, LOW);
+        lightOff = 0;
       }
       endTime = millis();  // take the current time to see if the game is over
     }
     myservo.write(45);                             // stop releasing Balls
     /*
     if (score > EEPROM.get(0, hi)) {               // Check if the high score was beaten
+      play(3);
       EEPROM.put(0, score);                        // Put the new high score in the EEPROM (permanent memory)
       hi = EEPROM.get(0, hi);                      // Update the high score variable not in the EEPROM
       display.clear();                             // Clear the display
@@ -138,6 +153,11 @@ void loop() {
       display.setColorFont(0xff0000);              // Set the color back to red
       display.clear();                             // Clear the display
       display.print(score);                        // Print the score again
+    }
+    else {
+      play(1);
+      delay(2000);                                 // Wait 2 seconds
+      display.clear();
     }
     */
     notIdle = millis();         // Reset the idle-time
@@ -153,6 +173,8 @@ void playFirst()
   delay(500);
   execute_CMD(0x11,0,1); 
   delay(500);
+  execute_CMD(0x03, 0, 1);
+  execute_CMD(0x0D,0,1);
 }
 
 void setVolume(int volume)
@@ -164,7 +186,6 @@ void setVolume(int volume)
 void play( int tracknum) {
   execute_CMD(0x03, 0, tracknum);
   execute_CMD(0x0D,0,1);
-  delay(500);
 }
 
 void execute_CMD(byte CMD, byte Par1, byte Par2)
