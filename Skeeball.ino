@@ -29,7 +29,6 @@ unsigned long endTime;          // Set this time-keeping variable as an unsigned
 unsigned long notIdle;          // Set this time-keeping variable as an unsigned long
 unsigned long lightOff;          // Set this time-keeping variable as an unsigned long
 Servo myservo;
-bool isPlaying = false;      // Don't start playing immediately
 
 typedef uint16_t segsize_t;  // fit variable size to your needed pixels. uint16_t --> max 16 Pixel per digit
 const segsize_t segment[8]{
@@ -53,10 +52,10 @@ Noiasca_NeopixelDisplay display(strip, segment, numDigits, pixelPerDigit);  // c
 void setup() {
   strip.begin();                      // INITIALIZE NeoPixel strip object (REQUIRED)
   strip.show();                       // Turn OFF all pixels ASAP
-  strip.setBrightness(150);           // Set BRIGHTNESS (max = 255)
+  strip.setBrightness(200);           // Set BRIGHTNESS (max = 255)
   display.setColorFont(0xff0000);     // Sets the display color to red
-  pinMode(relay, OUTPUT);             // Blah blah defining inputs (idk why this one needs to be pulled up but it does)
-  pinMode(hundredPin, INPUT_PULLUP);  // Blah blah defining inputs
+  pinMode(relay, OUTPUT);             // Blah blah defining inputs
+  pinMode(hundredPin, INPUT_PULLUP);  // Blah blah defining inputs (idk why this one needs to be pulled up but it does)
   pinMode(fiftyPin, INPUT);           // Blah blah defining inputs
   pinMode(fortyPin, INPUT);           // Blah blah defining inputs
   pinMode(thirtyPin, INPUT);          // Blah blah defining inputs
@@ -76,7 +75,6 @@ void setup() {
   mySerial.begin(9600);
   delay(1000);
   playFirst();
-  isPlaying = true;
 }
 
 void loop() {
@@ -171,10 +169,8 @@ void playFirst()
   delay(500);
   setVolume(20);
   delay(500);
-  execute_CMD(0x11,0,1); 
+  execute_CMD(0x0D,0,1); 
   delay(500);
-  execute_CMD(0x03, 0, 1);
-  execute_CMD(0x0D,0,1);
 }
 
 void setVolume(int volume)
@@ -185,6 +181,7 @@ void setVolume(int volume)
 
 void play( int tracknum) {
   execute_CMD(0x03, 0, tracknum);
+  delay(100);
   execute_CMD(0x0D,0,1);
 }
 
