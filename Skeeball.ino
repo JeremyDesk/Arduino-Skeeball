@@ -1,32 +1,32 @@
-#include <EEPROM.h>             // install EEPROM library from library manager
-#include <Servo.h>              // install Servo library from library manager
-#include "SoftwareSerial.h"     // install Software Serial Library (for audio)
-SoftwareSerial mySerial(1, 10); // Which pins on the Arduino are connected to the DFPlayer Mini
-#define Start_Byte 0x7E         // Magic audio stuff
-#define Version_Byte 0xFF       // Magic audio stuff
-#define Command_Length 0x06     // Magic audio stuff
-#define End_Byte 0xEF           // Magic audio stuff
-#define Acknowledge 0x00        // Returns info with command 0x41 [0x01: info, 0x00: no info]
-const int startPin = 2;         // Which pin on the Arduino is connected to the Start pin?
-const int hundredPin = 3;       // Which pin on the Arduino is connected to the 100 pin?
-const int fiftyPin = 4;         // Which pin on the Arduino is connected to the 50 pin?
-const int fortyPin = 5;         // Which pin on the Arduino is connected to the 40 pin?
-const int thirtyPin = 6;        // Which pin on the Arduino is connected to the 30 pin?
-const int twentyPin = 7;        // Which pin on the Arduino is connected to the 20 pin?
-const int tenPin = 8;           // Which pin on the Arduino is connected to the 10 pin?
-const int servo = 9;            // Which pin on the Arduino is connected to the servo?
-const byte ledPin = 11;         // Which pin on the Arduino is connected to the NeoPixels?
-const int relay = 12;           // Which pin on the Arduino is connected to the Relay? (for the start button LED)
-const int relay2 = 13;          // Which pin on the Arduino is connected to the Other Relay? (for the 100 Light)
-const byte numDigits = 4;       // How many digits (numbers) are available on your display
-const byte pixelPerDigit = 14;  // all Pixel, including decimal point pixels if available at each digit
-bool start;                     // Set start at True/False
-uint16_t score;                 // Set the score as an unsigned 16 bit integer
-uint16_t hi;                    // Set high score as an unsigned 16 bit integer
-int run;                        // Set the run variable (explained later) as an integer
-unsigned long startTime;        // Set this time-keeping variable as an unsigned long (needs to be an unsigned long for dealing with time)
-unsigned long endTime;          // Set this time-keeping variable as an unsigned long
-unsigned long notIdle;          // Set this time-keeping variable as an unsigned long
+#include <EEPROM.h>              // install EEPROM library from library manager
+#include <Servo.h>               // install Servo library from library manager
+#include "SoftwareSerial.h"      // install Software Serial Library (for audio)
+SoftwareSerial mySerial(1, 10);  // Which pins on the Arduino are connected to the DFPlayer Mini
+#define Start_Byte 0x7E          // Magic audio stuff
+#define Version_Byte 0xFF        // Magic audio stuff
+#define Command_Length 0x06      // Magic audio stuff
+#define End_Byte 0xEF            // Magic audio stuff
+#define Acknowledge 0x00         // Returns info with command 0x41 [0x01: info, 0x00: no info]
+const int startPin = 2;          // Which pin on the Arduino is connected to the Start pin?
+const int hundredPin = 3;        // Which pin on the Arduino is connected to the 100 pin?
+const int fiftyPin = 4;          // Which pin on the Arduino is connected to the 50 pin?
+const int fortyPin = 5;          // Which pin on the Arduino is connected to the 40 pin?
+const int thirtyPin = 6;         // Which pin on the Arduino is connected to the 30 pin?
+const int twentyPin = 7;         // Which pin on the Arduino is connected to the 20 pin?
+const int tenPin = 8;            // Which pin on the Arduino is connected to the 10 pin?
+const int servo = 9;             // Which pin on the Arduino is connected to the servo?
+const byte ledPin = 11;          // Which pin on the Arduino is connected to the NeoPixels?
+const int relay = 12;            // Which pin on the Arduino is connected to the Relay? (for the start button LED)
+const int relay2 = 13;           // Which pin on the Arduino is connected to the Other Relay? (for the 100 Light)
+const byte numDigits = 4;        // How many digits (numbers) are available on your display
+const byte pixelPerDigit = 14;   // all Pixel, including decimal point pixels if available at each digit
+bool start;                      // Set start at True/False
+uint16_t score;                  // Set the score as an unsigned 16 bit integer
+uint16_t hi;                     // Set high score as an unsigned 16 bit integer
+int run;                         // Set the run variable (explained later) as an integer
+unsigned long startTime;         // Set this time-keeping variable as an unsigned long (needs to be an unsigned long for dealing with time)
+unsigned long endTime;           // Set this time-keeping variable as an unsigned long
+unsigned long notIdle;           // Set this time-keeping variable as an unsigned long
 unsigned long lightOff;          // Set this time-keeping variable as an unsigned long
 Servo myservo;
 
@@ -62,7 +62,7 @@ void setup() {
   pinMode(twentyPin, INPUT);          // Blah blah defining inputs
   pinMode(tenPin, INPUT);             // Blah blah defining inputs
   pinMode(startPin, INPUT_PULLUP);    // Blah blah defining inputs (I do know why this one needs to be pulled up)
-  myservo.attach(servo,500,2500);     // Set servo to pin 9 with correct values
+  myservo.attach(servo, 500, 2500);   // Set servo to pin 9 with correct values
   digitalWrite(relay, HIGH);          // Set the relay to turn on
   digitalWrite(relay2, LOW);          // Set the other relay to turn off
   notIdle = 0;                        // Sets the initial not-idle time
@@ -70,11 +70,11 @@ void setup() {
     uint16_t fix = 0;                 // make a quick unsigned 16 bit integer 0
     EEPROM.put(0, fix);               // put that 0 in as the high score
   }
-  hi = EEPROM.get(0, hi);             // Put the highscore on a variable so you dont have to keep reading the EEPROM
-  myservo.write(50);
-  mySerial.begin(9600);
-  delay(1000);
-  playFirst();
+  hi = EEPROM.get(0, hi);  // Put the highscore on a variable so you dont have to keep reading the EEPROM
+  myservo.write(50);       // Keep balls from releasing
+  mySerial.begin(9600);    // begin serial for sound
+  delay(1000);             // Wait for serial to begin
+  playFirst();             // Startup DFPlayer mini and play sound effect
 }
 
 void loop() {
@@ -91,19 +91,19 @@ void loop() {
       notIdle += 6000UL;
     }
   }
-  if (start == 0) {                            // Start Button Pressed
-    myservo.write(135);                        // start releasing Balls
-    score = 0;                                 // Reset score
+  if (start == 0) {      // Start Button Pressed
+    myservo.write(135);  // start releasing Balls
+    score = 0;           // Reset score
     lightOff = 0;
-    digitalWrite(relay, LOW);                  // Turn off LED in start button
+    digitalWrite(relay, LOW);  // Turn off LED in start button
     play(4);
-    display.clear();                           // Clear the display
-    display.print(0);                          // Print the initial score of 0
-    delay(400);                                // wait for servo before starting time
-    startTime = millis();                      // Get the current time
-    endTime = millis();                        // Get the current time (again)
-    while (endTime - startTime <= 20000UL) {   // Run the game for 2 minutes (120000UL = 120 seconds)
-      run = 0;                                 // The run system allows simultaneous holes to score while preventing double scoring
+    display.clear();                          // Clear the display
+    display.print(0);                         // Print the initial score of 0
+    delay(400);                               // wait for servo before starting time
+    startTime = millis();                     // Get the current time
+    endTime = millis();                       // Get the current time (again)
+    while (endTime - startTime <= 20000UL) {  // Run the game for 2 minutes (120000UL = 120 seconds)
+      run = 0;                                // The run system allows simultaneous holes to score while preventing double scoring
       run += int(!digitalRead(hundredPin)) * 100;
       run += int(!digitalRead(fiftyPin)) * 50;
       run += int(!digitalRead(fortyPin)) * 40;
@@ -111,19 +111,17 @@ void loop() {
       run += int(!digitalRead(twentyPin)) * 20;
       run += int(!digitalRead(tenPin)) * 10;
 
-      if (run != 0) {          // If the player scored then add it to the score
-        score += run;          // addition
-        if (run ==100) {
+      if (run != 0) {  // If the player scored then add it to the score
+        score += run;  // addition
+        if (run == 100) {
           play(2);
-          digitalWrite(relay2, HIGH);      //100 Light (thanks blake)
+          digitalWrite(relay2, HIGH);  //100 Light (thanks blake)
           lightOff = millis() + 1200;
-        }
-        if (40 <= run < 100) {
+        } else if (run >= 40) {
           play(5);
-        }
-        if (run < 40) {
-          play(6);
-        }
+        } else {
+            play(6);
+          }
         display.clear();       // Clear the display
         display.print(score);  // Print the new score
         delay(800);            // 0.8 second delay prevents double scoring
@@ -134,8 +132,7 @@ void loop() {
       }
       endTime = millis();  // take the current time to see if the game is over
     }
-    myservo.write(45);                             // stop releasing Balls
-    /*
+    myservo.write(45);  // stop releasing Balls
     if (score > EEPROM.get(0, hi)) {               // Check if the high score was beaten
       play(3);
       EEPROM.put(0, score);                        // Put the new high score in the EEPROM (permanent memory)
@@ -157,32 +154,29 @@ void loop() {
       delay(2000);                                 // Wait 2 seconds
       display.clear();
     }
-    */
     notIdle = millis();         // Reset the idle-time
     digitalWrite(relay, HIGH);  // Turn on the LED in the start button
   }
 }
 
-void playFirst()
-{
+void playFirst() {
   execute_CMD(0x3F, 0, 0);
   delay(500);
   setVolume(20);
   delay(500);
-  execute_CMD(0x0D,0,1); 
+  execute_CMD(0x0D, 0, 1);
   delay(500);
 }
 
-void setVolume(int volume)
-{
-  execute_CMD(0x06, 0, volume); // Set the volume (0x00~0x30)
+void setVolume(int volume) {
+  execute_CMD(0x06, 0, volume);  // Set the volume (0x00~0x30)
   delay(2000);
 }
 
-void play( int tracknum) {
+void play(int tracknum) {
   execute_CMD(0x03, 0, tracknum);
   delay(100);
-  execute_CMD(0x0D,0,1);
+  execute_CMD(0x0D, 0, 1);
 }
 
 void execute_CMD(byte CMD, byte Par1, byte Par2)
