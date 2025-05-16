@@ -52,10 +52,10 @@ Noiasca_NeopixelDisplay display(strip, segment, numDigits, pixelPerDigit);  // c
 void setup() {
   strip.begin();                      // INITIALIZE NeoPixel strip object (REQUIRED)
   strip.show();                       // Turn OFF all pixels ASAP
-  strip.setBrightness(200);           // Set BRIGHTNESS (max = 255)
+  strip.setBrightness(250);           // Set BRIGHTNESS (max = 255)
   display.setColorFont(0xff0000);     // Sets the display color to red
   pinMode(relay, OUTPUT);             // Blah blah defining inputs
-  pinMode(hundredPin, INPUT_PULLUP);  // Blah blah defining inputs (idk why this one needs to be pulled up but it does)
+  pinMode(hundredPin, INPUT);         // Blah blah defining inputs 
   pinMode(fiftyPin, INPUT);           // Blah blah defining inputs
   pinMode(fortyPin, INPUT);           // Blah blah defining inputs
   pinMode(thirtyPin, INPUT);          // Blah blah defining inputs
@@ -106,7 +106,7 @@ void loop() {
       run = 0;                                // The run system allows simultaneous holes to score while preventing double scoring
       run += int(!digitalRead(hundredPin)) * 100;
       run += int(!digitalRead(fiftyPin)) * 50;
-      run += int(!digitalRead(fortyPin)) * 40;
+      run += int(digitalRead(fortyPin)) * 40;
       run += int(!digitalRead(thirtyPin)) * 30;
       run += int(!digitalRead(twentyPin)) * 20;
       run += int(!digitalRead(tenPin)) * 10;
@@ -134,7 +134,7 @@ void loop() {
     }
     myservo.write(45);  // stop releasing Balls
     if (score > EEPROM.get(0, hi)) {               // Check if the high score was beaten
-      play(3);
+      play(3);                                     // Play victory noise
       EEPROM.put(0, score);                        // Put the new high score in the EEPROM (permanent memory)
       hi = EEPROM.get(0, hi);                      // Update the high score variable not in the EEPROM
       display.clear();                             // Clear the display
@@ -150,9 +150,16 @@ void loop() {
       display.print(score);                        // Print the score again
     }
     else {
-      play(1);
-      delay(2000);                                 // Wait 2 seconds
-      display.clear();
+      play(1);                                     // Play end noise
+      display.clear();                             // Clear the display
+      display.show();                              // Blank the display
+      delay(500);                                  // Wait 0.5 seconds
+      display.print(score);                        // Show score
+      delay(500);                                  // Wait 0.5 seconds
+      display.clear();                             // Clear the display
+      display.show();;                             // Blank the display
+      delay(500);                                  // Wait 0.5 seconds
+      display.print(score);                        // Show score
     }
     notIdle = millis();         // Reset the idle-time
     digitalWrite(relay, HIGH);  // Turn on the LED in the start button
