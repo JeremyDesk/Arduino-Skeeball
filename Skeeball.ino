@@ -6,7 +6,7 @@ SoftwareSerial mySerial(1, 10);  // Which pins on the Arduino are connected to t
 #define Version_Byte 0xFF        // Magic audio stuff
 #define Command_Length 0x06      // Magic audio stuff
 #define End_Byte 0xEF            // Magic audio stuff
-#define Acknowledge 0x00         // Returns info with command 0x41 [0x01: info, 0x00: no info]
+#define Acknowledge 0x00         // Returns info with command 0x41 [0x01: info, 0x00: no info
 const int startPin = 2;          // Which pin on the Arduino is connected to the Start pin?
 const int hundredPin = 3;        // Which pin on the Arduino is connected to the 100 pin?
 const int fiftyPin = 4;          // Which pin on the Arduino is connected to the 50 pin?
@@ -50,60 +50,48 @@ Adafruit_NeoPixel strip(ledCount, ledPin, NEO_GRB + NEO_KHZ800);  // create neop
 Noiasca_NeopixelDisplay display(strip, segment, numDigits, pixelPerDigit);  // create display object, handover the name of your strip as first parameter!
 
 void setup() {
-  strip.begin();                      // INITIALIZE NeoPixel strip object (REQUIRED)
-  strip.show();                       // Turn OFF all pixels ASAP
-  strip.setBrightness(250);           // Set BRIGHTNESS (max = 255)
-  display.setColorFont(0xff0000);     // Sets the display color to red
-  pinMode(relay, OUTPUT);             // Blah blah defining inputs
-  pinMode(hundredPin, INPUT);         // Blah blah defining inputs 
-  pinMode(fiftyPin, INPUT);           // Blah blah defining inputs
-  pinMode(fortyPin, INPUT);           // Blah blah defining inputs
-  pinMode(thirtyPin, INPUT);          // Blah blah defining inputs
-  pinMode(twentyPin, INPUT);          // Blah blah defining inputs
-  pinMode(tenPin, INPUT);             // Blah blah defining inputs
-  pinMode(startPin, INPUT_PULLUP);    // Blah blah defining inputs (I do know why this one needs to be pulled up)
-  myservo.attach(servo, 500, 2500);   // Set servo to pin 9 with correct values
-  digitalWrite(relay, HIGH);          // Set the relay to turn on
-  digitalWrite(relay2, LOW);          // Set the other relay to turn off
-  notIdle = 0;                        // Sets the initial not-idle time
-  if (isnan(EEPROM.get(0, hi))) {     // Check if there is a high score stored in EEPROM (permanent memory)
-    uint16_t fix = 0;                 // make a quick unsigned 16 bit integer 0
-    EEPROM.put(0, fix);               // put that 0 in as the high score
+  strip.begin();                     // INITIALIZE NeoPixel strip object (REQUIRED)
+  strip.show();                      // Turn OFF all pixels ASAP
+  strip.setBrightness(250);          // Set BRIGHTNESS (max = 255)
+  display.setColorFont(0xff0000);    // Sets the display color to red
+  pinMode(relay, OUTPUT);            // Blah blah defining inputs
+  pinMode(hundredPin, INPUT);        // Blah blah defining inputs
+  pinMode(fiftyPin, INPUT);          // Blah blah defining inputs
+  pinMode(fortyPin, INPUT);          // Blah blah defining inputs
+  pinMode(thirtyPin, INPUT);         // Blah blah defining inputs
+  pinMode(twentyPin, INPUT);         // Blah blah defining inputs
+  pinMode(tenPin, INPUT);            // Blah blah defining inputs
+  pinMode(startPin, INPUT_PULLUP);   // Blah blah defining inputs (I do know why this one needs to be pulled up)
+  myservo.attach(servo, 500, 2500);  // Set servo to pin 9 with correct values
+  digitalWrite(relay, HIGH);         // Set the relay to turn on
+  digitalWrite(relay2, LOW);         // Set the other relay to turn off
+  notIdle = 0;                       // Sets the initial not-idle time
+  if (isnan(EEPROM.get(0, hi))) {    // Check if there is a high score stored in EEPROM (permanent memory)
+    uint16_t fix = 0;                // make a quick unsigned 16 bit integer 0
+    EEPROM.put(0, fix);              // put that 0 in as the high score
   }
   hi = EEPROM.get(0, hi);  // Put the highscore on a variable so you dont have to keep reading the EEPROM
-  myservo.write(0);       // Keep balls from releasing
+  myservo.write(0);        // Keep balls from releasing
   mySerial.begin(9600);    // begin serial for sound
   delay(1000);             // Wait for serial to begin
   playFirst();             // Startup DFPlayer mini and play sound effect
 }
 
 void loop() {
-  start = digitalRead(startPin);          // Check if start button is pressed
-  if (millis() - notIdle >= 20000UL) {    // Idle after 20 seconds
-    if (millis() - notIdle <= 23000UL) {  // Make the highscore animation
-      display.clear();
-      display.writeLowLevel(0, 0b11111100111100);  // Make first segment H
-      display.writeLowLevel(1, 0b00111100000000);  // Make second segment I
-      display.show();
-    } else {
-      display.clear();
-      display.print(hi);  // Show the high score
-      notIdle += 6000UL;
-    }
-  }
-  if (start == 0) {      // Start Button Pressed
+  start = digitalRead(startPin);  // Check if start button is pressed
+  if (start == 0) {
     myservo.write(90);  // start releasing Balls
-    score = 0;           // Reset score
+    score = 0;          // Reset score
     lightOff = 0;
     digitalWrite(relay, LOW);  // Turn off LED in start button
     play(4);
-    display.clear();                          // Clear the display
-    display.print(0);                         // Print the initial score of 0
-    delay(400);                               // wait for servo before starting time
-    startTime = millis();                     // Get the current time
-    endTime = millis();                       // Get the current time (again)
-    while (endTime - startTime <= 20000UL) {  // Run the game for 2 minutes (120000UL = 120 seconds)
-      run = 0;                                // The run system allows simultaneous holes to score while preventing double scoring
+    display.clear();                        // Clear the display
+    display.print(0);                       // Print the initial score of 0
+    delay(400);                             // wait for servo before starting time
+    startTime = millis();                   // Get the current time
+    endTime = millis();                     // Get the current time (again)
+    while (endTime - startTime <= 20000) {  // Run the game for 2 minutes (120000UL = 120 seconds)
+      run = 0;                              // The run system allows simultaneous holes to score while preventing double scoring
       run += int(!digitalRead(hundredPin)) * 100;
       run += int(!digitalRead(fiftyPin)) * 50;
       run += int(!digitalRead(fortyPin)) * 40;
@@ -120,8 +108,8 @@ void loop() {
         } else if (run >= 40) {
           play(5);
         } else {
-            play(6);
-          }
+          play(6);
+        }
         display.clear();       // Clear the display
         display.print(score);  // Print the new score
         delay(800);            // 0.8 second delay prevents double scoring
@@ -132,7 +120,7 @@ void loop() {
       }
       endTime = millis();  // take the current time to see if the game is over
     }
-    myservo.write(0);  // stop releasing Balls
+    myservo.write(0);                              // stop releasing Balls
     if (score > EEPROM.get(0, hi)) {               // Check if the high score was beaten
       play(3);                                     // Play victory noise
       EEPROM.put(0, score);                        // Put the new high score in the EEPROM (permanent memory)
@@ -148,22 +136,39 @@ void loop() {
       display.setColorFont(0xff0000);              // Set the color back to red
       display.clear();                             // Clear the display
       display.print(score);                        // Print the score again
-    }
-    else {
-      play(1);                                     // Play end noise
-      display.clear();                             // Clear the display
-      display.show();                              // Blank the display
-      delay(500);                                  // Wait 0.5 seconds
-      display.print(score);                        // Show score
-      delay(500);                                  // Wait 0.5 seconds
-      display.clear();                             // Clear the display
-      display.show();;                             // Blank the display
-      delay(500);                                  // Wait 0.5 seconds
-      display.print(score);                        // Show score
+    } else {
+      play(1);               // Play end noise
+      display.clear();       // Clear the display
+      display.show();        // Blank the display
+      delay(500);            // Wait 0.5 seconds
+      display.print(score);  // Show score
+      delay(500);            // Wait 0.5 seconds
+      display.clear();       // Clear the display
+      display.show();
+      ;                      // Blank the display
+      delay(500);            // Wait 0.5 seconds
+      display.print(score);  // Show score
     }
     notIdle = millis();         // Reset the idle-time
     digitalWrite(relay, HIGH);  // Turn on the LED in the start button
   }
+  /*
+  // THIS WHOLE SECTION MAKES THE SERVO MOVE?????????
+  if (millis() - notIdle >= 20000) {    // Idle after 20 seconds
+    if (millis() - notIdle <= 23000) {  // Make the highscore animation
+      display.clear();
+      display.writeLowLevel(0, 0b11111100111100);  // Make first segment H
+      display.writeLowLevel(1, 0b00111100000000);  // Make second segment I
+      display.show();
+      
+    } else {
+      display.clear();
+      display.print(hi);  // Show the high score
+      notIdle += 6000;
+      
+    }
+  }
+  */
 }
 
 void playFirst() {
