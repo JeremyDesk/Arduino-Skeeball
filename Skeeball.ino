@@ -106,7 +106,7 @@ void loop() {
       run = 0;                                // The run system allows simultaneous holes to score while preventing double scoring
       run += int(!digitalRead(hundredPin)) * 100;
       run += int(!digitalRead(fiftyPin)) * 50;
-      run += int(digitalRead(fortyPin)) * 40;
+      run += int(!digitalRead(fortyPin)) * 40;
       run += int(!digitalRead(thirtyPin)) * 30;
       run += int(!digitalRead(twentyPin)) * 20;
       run += int(!digitalRead(tenPin)) * 10;
