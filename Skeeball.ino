@@ -144,8 +144,7 @@ void loop() {
       display.print(score);  // Show score
       delay(500);            // Wait 0.5 seconds
       display.clear();       // Clear the display
-      display.show();
-      ;                      // Blank the display
+      display.show();        // Blank the display
       delay(500);            // Wait 0.5 seconds
       display.print(score);  // Show score
     }
@@ -160,7 +159,6 @@ void loop() {
       display.writeLowLevel(0, 0b11111100111100);  // Make first segment H
       display.writeLowLevel(1, 0b00111100000000);  // Make second segment I
       display.show();
-      
     } else {
       display.clear();
       display.print(hi);  // Show the high score
