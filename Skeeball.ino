@@ -71,7 +71,7 @@ void setup() {
     EEPROM.put(0, fix);               // put that 0 in as the high score
   }
   hi = EEPROM.get(0, hi);  // Put the highscore on a variable so you dont have to keep reading the EEPROM
-  myservo.write(50);       // Keep balls from releasing
+  myservo.write(0);       // Keep balls from releasing
   mySerial.begin(9600);    // begin serial for sound
   delay(1000);             // Wait for serial to begin
   playFirst();             // Startup DFPlayer mini and play sound effect
@@ -92,7 +92,7 @@ void loop() {
     }
   }
   if (start == 0) {      // Start Button Pressed
-    myservo.write(135);  // start releasing Balls
+    myservo.write(90);  // start releasing Balls
     score = 0;           // Reset score
     lightOff = 0;
     digitalWrite(relay, LOW);  // Turn off LED in start button
@@ -132,7 +132,7 @@ void loop() {
       }
       endTime = millis();  // take the current time to see if the game is over
     }
-    myservo.write(45);  // stop releasing Balls
+    myservo.write(0);  // stop releasing Balls
     if (score > EEPROM.get(0, hi)) {               // Check if the high score was beaten
       play(3);                                     // Play victory noise
       EEPROM.put(0, score);                        // Put the new high score in the EEPROM (permanent memory)
