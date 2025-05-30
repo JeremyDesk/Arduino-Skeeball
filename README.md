@@ -1,5 +1,5 @@
 # Arduino-Skeeball
-Code for making an arduino powered Skeeball machine. Features include scoring, LED strip scoreboard, LED start button, persistent high score, idle animation, audio, and more!
+Code for making an arduino powered Skeeball machine. Features include scoring, LED strip scoreboard, LED start button, persistent high score, idle animation, audio, and more! There is also a bill of materials for the parts used in this project.
 
 CIRCUIT DIAGRAMS IN PROGRESS
 
