@@ -92,7 +92,7 @@ void loop() {
     delay(400);                             // wait for servo before starting time
     startTime = millis();                   // Get the current time
     endTime = millis();                     // Get the current time (again)
-    while (endTime - startTime <= 20000) {  // Run the game for 2 minutes (120000UL = 120 seconds)
+    while (endTime - startTime <= 60000) {  // Run the game for 2 minutes (120000UL = 120 seconds)
       run = 0;                              // The run system allows simultaneous holes to score while preventing double scoring
       run += int(!digitalRead(hundredPin)) * 100;
       run += int(!digitalRead(fiftyPin)) * 50;
