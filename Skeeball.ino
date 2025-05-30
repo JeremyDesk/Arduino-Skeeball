@@ -123,7 +123,6 @@ void loop() {
       endTime = millis();  // take the current time to see if the game is over
     }
     myservo.write(0);                              // stop releasing Balls
-    myservo.detach();                              // Detach the servo so the animation doesnt break
     if (score > EEPROM.get(0, hi)) {               // Check if the high score was beaten
       play(3);                                     // Play victory noise
       EEPROM.put(0, score);                        // Put the new high score in the EEPROM (permanent memory)
@@ -153,6 +152,8 @@ void loop() {
     }
     notIdle = millis();         // Reset the idle-time
     digitalWrite(relay, HIGH);  // Turn on the LED in the start button
+    myservo.detach();                              // Detach the servo so the animation doesnt break
+
   }
   
   if (millis() - notIdle >= 20000) {    // Idle after 20 seconds
