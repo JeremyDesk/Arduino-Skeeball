@@ -1,6 +1,6 @@
-#include <EEPROM.h>              // install EEPROM library from library manager
-#include <Servo.h>               // install Servo library from library manager
-#include "SoftwareSerial.h"      // install Software Serial Library (for audio)
+#include <EEPROM.h>              // Install EEPROM library from library manager
+#include <Servo.h>               // Install Servo library from library manager
+#include "SoftwareSerial.h"      // Install Software Serial Library (for audio)
 SoftwareSerial mySerial(1, 10);  // Which pins on the Arduino are connected to the DFPlayer Mini
 #define Start_Byte 0x7E          // Magic audio stuff
 #define Version_Byte 0xFF        // Magic audio stuff
@@ -28,9 +28,9 @@ unsigned long startTime;         // Set this time-keeping variable as an unsigne
 unsigned long endTime;           // Set this time-keeping variable as an unsigned long
 unsigned long notIdle;           // Set this time-keeping variable as an unsigned long
 unsigned long lightOff;          // Set this time-keeping variable as an unsigned long
-Servo myservo;
+Servo myservo;                   // IDK but this is necessary I think
 
-typedef uint16_t segsize_t;  // fit variable size to your needed pixels. uint16_t --> max 16 Pixel per digit
+typedef uint16_t segsize_t;   // fit variable size to your needed pixels. uint16_t --> max 16 Pixel per digit
 const segsize_t segment[8]{
   0b0000000000000011,  // SEG_A
   0b0000000000001100,  // SEG_B
@@ -75,16 +75,18 @@ void setup() {
   mySerial.begin(9600);    // begin serial for sound
   delay(1000);             // Wait for serial to begin
   playFirst();             // Startup DFPlayer mini and play sound effect
+  myservo.detach();        // Detach servo so animation works
 }
 
 void loop() {
   start = digitalRead(startPin);  // Check if start button is pressed
   if (start == 0) {
-    myservo.write(90);  // start releasing Balls
-    score = 0;          // Reset score
-    lightOff = 0;
-    digitalWrite(relay, LOW);  // Turn off LED in start button
-    play(4);
+    myservo.attach(servo, 500, 2500);       // Set servo to pin 9 with correct values
+    myservo.write(90);                      // start releasing Balls
+    score = 0;                              // Reset score
+    lightOff = 0;                           // Make sure 100 light is off
+    digitalWrite(relay, LOW);               // Turn off LED in start button
+    play(4);                                // Play game start sound
     display.clear();                        // Clear the display
     display.print(0);                       // Print the initial score of 0
     delay(400);                             // wait for servo before starting time
@@ -99,28 +101,29 @@ void loop() {
       run += int(!digitalRead(twentyPin)) * 20;
       run += int(!digitalRead(tenPin)) * 10;
 
-      if (run != 0) {  // If the player scored then add it to the score
-        score += run;  // addition
+      if (run != 0) {                  // If the player scored then add it to the score
+        score += run;                  // addition
         if (run == 100) {
-          play(2);
-          digitalWrite(relay2, HIGH);  //100 Light (thanks blake)
-          lightOff = millis() + 1200;
+          play(2);                     // Play 100 sound
+          digitalWrite(relay2, HIGH);  // 100 Light (thanks blake)
+          lightOff = millis() + 1200;  // Turn on the 100 light
         } else if (run >= 40) {
-          play(5);
+          play(5);                     // Play the 40/50 sound
         } else {
-          play(6);
+          play(6);                     // Play the 10/20/30 sound
         }
         display.clear();       // Clear the display
         display.print(score);  // Print the new score
         delay(800);            // 0.8 second delay prevents double scoring
       }
       if (millis() >= lightOff) {
-        digitalWrite(relay2, LOW);
-        lightOff = 0;
+        digitalWrite(relay2, LOW);     // Turn the light off
+        lightOff = 0;                  // Make sure the light doesnt come back on
       }
       endTime = millis();  // take the current time to see if the game is over
     }
     myservo.write(0);                              // stop releasing Balls
+    myservo.detach();                              // Detach the servo so the animation doesnt break
     if (score > EEPROM.get(0, hi)) {               // Check if the high score was beaten
       play(3);                                     // Play victory noise
       EEPROM.put(0, score);                        // Put the new high score in the EEPROM (permanent memory)
@@ -151,8 +154,7 @@ void loop() {
     notIdle = millis();         // Reset the idle-time
     digitalWrite(relay, HIGH);  // Turn on the LED in the start button
   }
-  /*
-  // THIS WHOLE SECTION MAKES THE SERVO MOVE?????????
+  
   if (millis() - notIdle >= 20000) {    // Idle after 20 seconds
     if (millis() - notIdle <= 23000) {  // Make the highscore animation
       display.clear();
@@ -166,7 +168,7 @@ void loop() {
       
     }
   }
-  */
+  
 }
 
 void playFirst() {
