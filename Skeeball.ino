@@ -120,6 +120,9 @@ void loop() {
         digitalWrite(relay2, LOW);     // Turn the light off
         lightOff = 0;                  // Make sure the light doesnt come back on
       }
+      if (55000 <= endTime - startTime) {  // stop releasing balls at 55 seconds
+        myservo.write(0);                  // stop releasing Balls
+      }
       endTime = millis();  // take the current time to see if the game is over
     }
     myservo.write(0);                              // stop releasing Balls
